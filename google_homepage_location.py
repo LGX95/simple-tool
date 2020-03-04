@@ -10,36 +10,12 @@ import re
 from urllib import request
 
 
-url = 'https://www.google.com/?gws_rd=ssl'
+url = 'https://www.google.com/search?q=what+is+my+ip&oq=what+is+my+ip&aqs=chrome..69i57j69i61.7202j0j1&sourceid=chrome&ie=UTF-8'
 headers = {
-    'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1',
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36',
     'Accept-Language': 'en,zh-CN;q=0.9,zh;q=0.8',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
 }
-ignore_matched = [
-    'YES',
-    'News',
-    'Shopping',
-    'Books',
-    'Account',
-    'Search',
-    'Maps',
-    'YouTube',
-    'Play',
-    'Gmail',
-    'Contacts',
-    'Drive',
-    'Calendar',
-    'Translate',
-    'Photos',
-    'Duo',
-    'Docs',
-    'Sheets',
-    'Slides',
-    'Blogger',
-    'Hangouts',
-    'Keep',
-    'Jamboard',
-    'Collections']
 
 
 def get(url, headers):
@@ -56,8 +32,9 @@ def write_tmp(html):
 def extract_location(html):
     """just use re to extract location
     """
-    matched = re.findall(r'>([A-Za-z ]+)</span>', html)
-    return [i for i in matched if i not in ignore_matched]
+    re_pmc = re.findall(r"pmc='(.*?)'", html)
+    matched = re.findall(r'\\x22uul_text\\x22:\\x22(.*?)\\x22', re_pmc[0])
+    return matched
 
 
 if __name__ == '__main__':

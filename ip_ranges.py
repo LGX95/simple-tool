@@ -7,8 +7,9 @@ Ref: https://cloud.google.com/compute/docs/faq#find_ip_range
 __author__ = 'lgx'
 __date__ = '2020-10'
 
+import ipaddress
 import subprocess as sp
-from typing import Dict, List
+from typing import List
 
 import httpx
 
@@ -46,7 +47,7 @@ def get_gcp_ip_range_by_dig(dns_url: str,
     return ip_range_list
 
 
-def get_gcp_ip_range_by_cloudjson() -> List[Dict[str, str]]:
+def get_gcp_ip_ranges() -> List[str]:
     """get google cloud JSON-formatted list ip ranges
     """
     url = 'https://www.gstatic.com/ipranges/cloud.json'
@@ -62,12 +63,53 @@ def get_gcp_ip_range_by_cloudjson() -> List[Dict[str, str]]:
     #                 scope: "asia-east1"
     #             }, ...]
     #     }
-    return r.json()
+    ip_ranges = [
+        i['ipv4Prefix'] for i in r.json()['prefixes'] if i.get('ipv4Prefix')
+    ]
+    return ip_ranges
+
+
+def get_aws_ip_ranges() -> List[str]:
+    """get aws json-formatted list ip ranges
+    """
+    url = 'https://ip-ranges.amazonaws.com/ip-ranges.json'
+    r = httpx.get(url)
+    # r.json() eg:
+    #     syncToken: "1602124876",
+    #     createDate: "2020-10-08-02-41-16",
+    #     prefixes: [
+    #         {
+    #             ip_prefix: "3.5.140.0/22",
+    #             region: "ap-northeast-2",
+    #             service: "AMAZON",
+    #             network_border_group: "ap-northeast-2"
+    #         }, ...
+    #     ]
+    #     ipv6_prefixes: [
+    #         {
+    #             ipv6_prefix: "2600:1f15::/32",
+    #             region: "us-gov-east-1",
+    #             service: "AMAZON",
+    #             network_border_group: "us-gov-east-1"
+    #         }, ...
+    #     ]
+    ip_ranges = [i['ip_prefix'] for i in r.json()['prefixes']]
+    return ip_ranges
+
+
+def collapse_ip_ranges(ip_range_list: List[str]) -> List[str]:
+    """collapse ip ranges list
+    """
+    ips = [ipaddress.ip_network(ip) for ip in ip_range_list]
+    cidrs = ipaddress.collapse_addresses(ips)
+    return sorted([i.with_prefixlen for i in cidrs])
 
 
 if __name__ == '__main__':
-    ip_range_list = get_gcp_ip_range_by_dig(gcp_dns_url, [])
-    print(ip_range_list)
+    gcp_ip_ranges = get_gcp_ip_ranges()
+    gcp_cidrs = collapse_ip_ranges(gcp_ip_ranges)
+    print(gcp_cidrs)
 
-    ip_range = get_gcp_ip_range_by_cloudjson()
-    print(ip_range)
+    aws_ip_ranges = get_aws_ip_ranges()
+    aws_cidrs = collapse_ip_ranges(aws_ip_ranges)
+    print(aws_cidrs)

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """This scripts use to get google cloud ip ranges
 Ref: https://cloud.google.com/compute/docs/faq#find_ip_range
+https://docs.aws.amazon.com/general/latest/gr/aws-ip-ranges.html
 """
 
 __author__ = 'lgx'
